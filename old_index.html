@@ -694,60 +694,6 @@
 
         const TIME_SLOTS = generateTimeSlots();
 
-        // Sync Code Entry Component
-        function SyncCodeEntry({ dataStore, onSync }) {
-            const [syncCode, setSyncCode] = useState('');
-            const [error, setError] = useState('');
-
-            const handleSync = () => {
-                if (syncCode.length !== 8) {
-                    setError('Sync code must be 8 characters');
-                    return;
-                }
-
-                // Convert sync code back to user ID format
-                const userId = 'user_' + syncCode.toLowerCase();
-                
-                // Save the new user ID
-                localStorage.setItem('userId', userId);
-                dataStore.userId = userId;
-                
-                setError('');
-                setSyncCode('');
-                onSync();
-            };
-
-            return (
-                <div>
-                    <div className="input-group">
-                        <input
-                            type="text"
-                            placeholder="Enter 8-character sync code"
-                            value={syncCode}
-                            onChange={(e) => {
-                                setSyncCode(e.target.value.toUpperCase());
-                                setError('');
-                            }}
-                            maxLength={8}
-                            style={{textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center', fontSize: '18px'}}
-                        />
-                        {error && (
-                            <small style={{color: 'var(--red)', display: 'block', marginTop: '8px'}}>
-                                {error}
-                            </small>
-                        )}
-                    </div>
-                    <button 
-                        className="btn btn-secondary" 
-                        onClick={handleSync}
-                        disabled={syncCode.length !== 8}
-                    >
-                        Sync with This Code
-                    </button>
-                </div>
-            );
-        }
-
         // Local storage wrapper with Firebase sync capability
         class DataStore {
             constructor() {
@@ -1103,25 +1049,14 @@
                                 <div className="section-title">⚙️ Settings & Sync</div>
                                 
                                 <div style={{marginBottom: '24px'}}>
-                                    <h3 style={{marginBottom: '12px', fontSize: '18px'}}>Your Sync Code</h3>
+                                    <h3 style={{marginBottom: '12px', fontSize: '18px'}}>Sync Code</h3>
                                     <p style={{color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px'}}>
-                                        This is your device's sync code. Save this code to sync your data across devices.
+                                        Use this code to sync your data across devices. Enter this code on your other devices.
                                     </p>
                                     <div className="sync-code-display">
                                         <div className="sync-code">{dataStore.getSyncCode()}</div>
                                         <small style={{color: 'var(--text-secondary)'}}>Your unique sync code</small>
                                     </div>
-                                </div>
-
-                                <div style={{marginBottom: '24px'}}>
-                                    <h3 style={{marginBottom: '12px', fontSize: '18px'}}>Sync with Another Device</h3>
-                                    <p style={{color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px'}}>
-                                        Enter a sync code from another device to sync your data across devices.
-                                    </p>
-                                    <SyncCodeEntry dataStore={dataStore} onSync={() => {
-                                        setDayData(dataStore.getData(currentDate));
-                                        alert('Synced! Your data is now connected across devices.');
-                                    }} />
                                 </div>
 
                                 <div>
