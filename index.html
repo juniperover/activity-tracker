@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Activity Tracker</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiQWN0aXZpdHkgVHJhY2tlciIsInNob3J0X25hbWUiOiJBY3Rpdml0eSIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjVmOGZhIiwidGhlbWVfY29sb3IiOiIjNGM3ZGI1In0=">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4c7db5;
+            --primary-dark: #3a6191;
+            --secondary: #7eb09b;
+            --accent: #e8a87c;
+            --bg-main: #f5f8fa;
+            --bg-card: #ffffff;
+            --text-primary: #2c3e50;
+            --text-secondary: #6c757d;
+            --border: #e0e6ed;
+            --shadow: rgba(76, 125, 181, 0.1);
+            
+            --red: #e76f6f;
+            --yellow: #f4c430;
+            --green: #7eb09b;
+            
+            --red-light: #fef0f0;
+            --yellow-light: #fffbf0;
+            --green-light: #f0f8f5;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 80px;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 24px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px var(--shadow);
+        }
+
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .app-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 16px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 12px;
+        }
+
+        .date-selector input {
+            flex: 1;
+            background: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+        }
+
+        .date-nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .date-nav-btn:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.95);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 12px var(--shadow);
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-main);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 56px;
+            height: 32px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 32px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--secondary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+        }
+
+        .time-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .time-slot {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .time-slot:active {
+            transform: scale(0.98);
+        }
+
+        .time-slot.filled {
+            border-color: var(--secondary);
+            background: linear-gradient(135deg, rgba(126, 176, 155, 0.05) 0%, rgba(126, 176, 155, 0.1) 100%);
+        }
+
+        .time-slot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .time-label {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--primary);
+        }
+
+        .color-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+        }
+
+        .color-indicator.red { background: var(--red); border-color: var(--red); }
+        .color-indicator.yellow { background: var(--yellow); border-color: var(--yellow); }
+        .color-indicator.green { background: var(--green); border-color: var(--green); }
+
+        .activity-display {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .activity-display strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            font-family: 'DM Sans', sans-serif;
+            box-shadow: 0 4px 12px rgba(76, 125, 181, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(76, 125, 181, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            box-shadow: 0 4px 12px rgba(126, 176, 155, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            box-shadow: none;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .symptoms-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .symptom-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-main);
+            border-radius: 12px;
+        }
+
+        .symptom-label {
+            flex: 1;
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .color-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .color-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .color-btn:active {
+            transform: scale(0.9);
+        }
+
+        .color-btn.red { background: var(--red); }
+        .color-btn.yellow { background: var(--yellow); }
+        .color-btn.green { background: var(--green); }
+
+        .color-btn.selected {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 2px white, 0 0 0 4px var(--text-primary);
+        }
+
+        .notes-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .notes-area:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            animation: fadeIn 0.2s;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        @media (min-width: 768px) {
+            .modal.active {
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+            max-width: 600px;
+        }
+
+        @media (min-width: 768px) {
+            .modal-content {
+                border-radius: 24px;
+            }
+        }
+
+        .modal-header {
+            padding: 24px 20px 16px;
+            border-bottom: 2px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .activity-picker {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .activity-btn {
+            padding: 14px 12px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+            text-align: center;
+        }
+
+        .activity-btn:active {
+            transform: scale(0.96);
+        }
+
+        .activity-btn.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .category-picker {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .category-btn {
+            padding: 10px 16px;
+            border: 2px solid var(--border);
+            background: white;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .category-btn:active {
+            transform: scale(0.95);
+        }
+
+        .category-btn.selected {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
+        }
+
+        .color-picker {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .color-picker .color-btn {
+            width: 56px;
+            height: 56px;
+        }
+
+        .label-text {
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            box-shadow: 0 -4px 20px var(--shadow);
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 8px;
+        }
+
+        .nav-btn:active {
+            background: var(--bg-main);
+        }
+
+        .nav-btn.active {
+            color: var(--primary);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .notification-permission {
+            background: linear-gradient(135deg, var(--accent) 0%, #d89a6e 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification-permission button {
+            background: white;
+            color: var(--accent);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .sync-code-display {
+            background: var(--bg-main);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .sync-code {
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 4px;
+            margin: 12px 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.red { background: var(--red-light); color: var(--red); }
+        .badge.yellow { background: var(--yellow-light); color: #b8930d; }
+        .badge.green { background: var(--green-light); color: var(--green); }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 15px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Firebase configuration - using a demo project
+        const firebaseConfig = {
+            apiKey: "AIzaSyBqB4cQz7a_p9P8F9iMxHzQ8zK3Lq_EXAMPLE",
+            authDomain: "activity-tracker-demo.firebaseapp.com",
+            projectId: "activity-tracker-demo",
+            storageBucket: "activity-tracker-demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        const ACTIVITIES = [
+            'Working at computer', 'Other working', 'Meal prep', 'Eating',
+            'Exercise', 'Gardening', 'Errands', 'Chores', 'Driving', 'Transit',
+            'Watching TV', 'Going out', 'Socialising', 'Reading', 'Sleeping',
+            'Meditation/mindfulness', 'Hygiene/self-care', 'Medical appointments',
+            'Phone calls/texts', 'Creative hobbies', 'Rest/relaxation'
+        ];
+
+        const CATEGORIES = ['Physical', 'Cognitive', 'Emotional', 'Environmental', 'Social'];
+        const COLORS = ['red', 'yellow', 'green'];
+        const SYMPTOMS = ['Pain', 'Allergies', 'Fatigue', 'Headache', 'Other'];
+
+        // Generate time slots from 6am to 1am (next day)
+        const generateTimeSlots = () => {
+            const slots = [];
+            for (let hour = 6; hour < 25; hour++) {
+                for (let min = 0; min < 60; min += 30) {
+                    const displayHour = hour >= 24 ? hour - 24 : hour;
+                    const time = `${displayHour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                    slots.push(time);
+                }
+            }
+            return slots;
+        };
+
+        const TIME_SLOTS = generateTimeSlots();
+
+        // Local storage wrapper with Firebase sync capability
+        class DataStore {
+            constructor() {
+                this.userId = localStorage.getItem('userId') || this.generateUserId();
+                localStorage.setItem('userId', this.userId);
+            }
+
+            generateUserId() {
+                return 'user_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+            }
+
+            getUserId() {
+                return this.userId;
+            }
+
+            getSyncCode() {
+                return this.userId.split('_')[1].toUpperCase().slice(0, 8);
+            }
+
+            getData(date) {
+                const key = `activity_${date}`;
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : this.getEmptyDayData();
+            }
+
+            saveData(date, data) {
+                const key = `activity_${date}`;
+                localStorage.setItem(key, JSON.stringify(data));
+                // In production, this would sync to Firebase
+            }
+
+            getEmptyDayData() {
+                return {
+                    timeSlots: {},
+                    symptomsAM: {},
+                    symptomsPM: {},
+                    notes: ''
+                };
+            }
+
+            exportToCSV(date) {
+                const data = this.getData(date);
+                let csv = 'Time,Activity 1,Activity 2,Category,Exertion Level\n';
+                
+                TIME_SLOTS.forEach(time => {
+                    const slot = data.timeSlots[time] || {};
+                    csv += `${time},`;
+                    csv += `"${slot.activity1 || ''}",`;
+                    csv += `"${slot.activity2 || ''}",`;
+                    csv += `"${slot.category || ''}",`;
+                    csv += `"${slot.color || ''}"\n`;
+                });
+
+                csv += '\nMorning Symptoms\n';
+                SYMPTOMS.forEach(symptom => {
+                    csv += `${symptom},${data.symptomsAM[symptom] || ''}\n`;
+                });
+
+                csv += '\nEvening Symptoms\n';
+                SYMPTOMS.forEach(symptom => {
+                    csv += `${symptom},${data.symptomsPM[symptom] || ''}\n`;
+                });
+
+                csv += '\nNotes\n';
+                csv += `"${data.notes || ''}"\n`;
+
+                return csv;
+            }
+        }
+
+        const dataStore = new DataStore();
+
+        function App() {
+            const [currentDate, setCurrentDate] = useState(new Date().toISOString().split('T')[0]);
+            const [currentView, setCurrentView] = useState('tracker');
+            const [dayData, setDayData] = useState(dataStore.getData(currentDate));
+            const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+            const [showModal, setShowModal] = useState(false);
+            const [editingSlot, setEditingSlot] = useState(null);
+            const [modalData, setModalData] = useState({
+                activity1: '',
+                activity2: '',
+                category: '',
+                color: ''
+            });
+            const [showPermissionBanner, setShowPermissionBanner] = useState(false);
+
+            useEffect(() => {
+                setDayData(dataStore.getData(currentDate));
+            }, [currentDate]);
+
+            useEffect(() => {
+                if (dayData) {
+                    dataStore.saveData(currentDate, dayData);
+                }
+            }, [dayData, currentDate]);
+
+            useEffect(() => {
+                if ('Notification' in window) {
+                    if (Notification.permission === 'default') {
+                        setShowPermissionBanner(true);
+                    } else if (Notification.permission === 'granted') {
+                        setNotificationsEnabled(true);
+                    }
+                }
+            }, []);
+
+            useEffect(() => {
+                if (notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+                    const interval = setInterval(() => {
+                        const now = new Date();
+                        const minutes = now.getMinutes();
+                        
+                        if (minutes === 0) {
+                            new Notification('Activity Tracker Reminder', {
+                                body: 'Time to log your activities for the past hour!',
+                                icon: '📊',
+                                badge: '📊'
+                            });
+                        }
+                    }, 60000);
+
+                    return () => clearInterval(interval);
+                }
+            }, [notificationsEnabled]);
+
+            const requestNotificationPermission = async () => {
+                if ('Notification' in window) {
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        setNotificationsEnabled(true);
+                        setShowPermissionBanner(false);
+                    }
+                }
+            };
+
+            const changeDate = (days) => {
+                const date = new Date(currentDate);
+                date.setDate(date.getDate() + days);
+                setCurrentDate(date.toISOString().split('T')[0]);
+            };
+
+            const openSlotEditor = (time) => {
+                const slotData = dayData.timeSlots[time] || {};
+                setEditingSlot(time);
+                setModalData({
+                    activity1: slotData.activity1 || '',
+                    activity2: slotData.activity2 || '',
+                    category: slotData.category || '',
+                    color: slotData.color || ''
+                });
+                setShowModal(true);
+            };
+
+            const saveSlotData = () => {
+                if (!editingSlot) return;
+
+                setDayData(prev => ({
+                    ...prev,
+                    timeSlots: {
+                        ...prev.timeSlots,
+                        [editingSlot]: modalData
+                    }
+                }));
+
+                setShowModal(false);
+                setEditingSlot(null);
+            };
+
+            const updateSymptoms = (period, symptom, value) => {
+                const key = period === 'AM' ? 'symptomsAM' : 'symptomsPM';
+                setDayData(prev => ({
+                    ...prev,
+                    [key]: {
+                        ...prev[key],
+                        [symptom]: value
+                    }
+                }));
+            };
+
+            const updateNotes = (value) => {
+                setDayData(prev => ({
+                    ...prev,
+                    notes: value
+                }));
+            };
+
+            const exportData = () => {
+                const csv = dataStore.exportToCSV(currentDate);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `activity-tracker-${currentDate}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            };
+
+            return (
+                <>
+                    <div className="app-header">
+                        <div className="header-content">
+                            <h1 className="app-title">Activity Tracker</h1>
+                            <p className="app-subtitle">Track your daily activities and symptoms</p>
+                            <div className="date-selector">
+                                <button className="date-nav-btn" onClick={() => changeDate(-1)}>←</button>
+                                <input 
+                                    type="date" 
+                                    value={currentDate} 
+                                    onChange={(e) => setCurrentDate(e.target.value)}
+                                />
+                                <button className="date-nav-btn" onClick={() => changeDate(1)}>→</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="container">
+                        {currentView === 'tracker' && (
+                            <>
+                                {showPermissionBanner && (
+                                    <div className="notification-permission">
+                                        <div>
+                                            <strong>Enable hourly reminders?</strong>
+                                            <br />
+                                            <small>Get notified to log your activities</small>
+                                        </div>
+                                        <button onClick={requestNotificationPermission}>Enable</button>
+                                    </div>
+                                )}
+
+                                <div className="section">
+                                    <div className="section-title">⏰ Settings</div>
+                                    <div className="toggle-container">
+                                        <span className="toggle-label">Hourly Notifications</span>
+                                        <label className="toggle-switch">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={notificationsEnabled}
+                                                onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                                                disabled={!('Notification' in window) || Notification.permission !== 'granted'}
+                                            />
+                                            <span className="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div className="section">
+                                    <div className="section-title">🌅 Morning Symptoms</div>
+                                    <div className="symptoms-grid">
+                                        {SYMPTOMS.map(symptom => (
+                                            <div key={symptom} className="symptom-row">
+                                                <span className="symptom-label">{symptom}</span>
+                                                <div className="color-btn-group">
+                                                    {COLORS.map(color => (
+                                                        <button
+                                                            key={color}
+                                                            className={`color-btn ${color} ${dayData.symptomsAM[symptom] === color ? 'selected' : ''}`}
+                                                            onClick={() => updateSymptoms('AM', symptom, color)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="section">
+                                    <div className="section-title">📅 Time Tracker</div>
+                                    <div className="time-grid">
+                                        {TIME_SLOTS.map(time => {
+                                            const slotData = dayData.timeSlots[time];
+                                            const isFilled = slotData && (slotData.activity1 || slotData.activity2);
+                                            
+                                            return (
+                                                <div 
+                                                    key={time} 
+                                                    className={`time-slot ${isFilled ? 'filled' : ''}`}
+                                                    onClick={() => openSlotEditor(time)}
+                                                >
+                                                    <div className="time-slot-header">
+                                                        <span className="time-label">{time}</span>
+                                                        {slotData?.color && (
+                                                            <div className={`color-indicator ${slotData.color}`}></div>
+                                                        )}
+                                                    </div>
+                                                    {isFilled ? (
+                                                        <div className="activity-display">
+                                                            {slotData.activity1 && <strong>{slotData.activity1}</strong>}
+                                                            {slotData.activity2 && <strong>{slotData.activity2}</strong>}
+                                                            {slotData.category && (
+                                                                <span className={`badge ${slotData.color || 'green'}`}>
+                                                                    {slotData.category}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="activity-display">Tap to add activity</div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div className="section">
+                                    <div className="section-title">🌙 Evening Symptoms</div>
+                                    <div className="symptoms-grid">
+                                        {SYMPTOMS.map(symptom => (
+                                            <div key={symptom} className="symptom-row">
+                                                <span className="symptom-label">{symptom}</span>
+                                                <div className="color-btn-group">
+                                                    {COLORS.map(color => (
+                                                        <button
+                                                            key={color}
+                                                            className={`color-btn ${color} ${dayData.symptomsPM[symptom] === color ? 'selected' : ''}`}
+                                                            onClick={() => updateSymptoms('PM', symptom, color)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="section">
+                                    <div className="section-title">📝 Notes</div>
+                                    <textarea 
+                                        className="notes-area"
+                                        placeholder="Add any notes about your day..."
+                                        value={dayData.notes}
+                                        onChange={(e) => updateNotes(e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        {currentView === 'export' && (
+                            <div className="section">
+                                <div className="section-title">📤 Export Data</div>
+                                <p style={{marginBottom: '20px', color: 'var(--text-secondary)'}}>
+                                    Export your activity data to CSV format for the selected date.
+                                </p>
+                                <button className="btn" onClick={exportData}>
+                                    Download CSV for {currentDate}
+                                </button>
+                            </div>
+                        )}
+
+                        {currentView === 'settings' && (
+                            <div className="section">
+                                <div className="section-title">⚙️ Settings & Sync</div>
+                                
+                                <div style={{marginBottom: '24px'}}>
+                                    <h3 style={{marginBottom: '12px', fontSize: '18px'}}>Sync Code</h3>
+                                    <p style={{color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px'}}>
+                                        Use this code to sync your data across devices. Enter this code on your other devices.
+                                    </p>
+                                    <div className="sync-code-display">
+                                        <div className="sync-code">{dataStore.getSyncCode()}</div>
+                                        <small style={{color: 'var(--text-secondary)'}}>Your unique sync code</small>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 style={{marginBottom: '12px', fontSize: '18px'}}>Notifications</h3>
+                                    <p style={{color: 'var(--text-secondary)', marginBottom: '16px', fontSize: '14px'}}>
+                                        {notificationsEnabled 
+                                            ? 'Hourly reminders are enabled. You\'ll get notified at the top of each hour.' 
+                                            : 'Enable notifications to get hourly reminders to log your activities.'}
+                                    </p>
+                                    {!notificationsEnabled && (
+                                        <button className="btn" onClick={requestNotificationPermission}>
+                                            Enable Notifications
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {showModal && (
+                        <div className="modal active" onClick={() => setShowModal(false)}>
+                            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <div className="modal-title">Edit Time Slot: {editingSlot}</div>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="label-text">Activity 1 (Required)</div>
+                                    <div className="activity-picker">
+                                        {ACTIVITIES.map(activity => (
+                                            <button
+                                                key={activity}
+                                                className={`activity-btn ${modalData.activity1 === activity ? 'selected' : ''}`}
+                                                onClick={() => setModalData({...modalData, activity1: activity})}
+                                            >
+                                                {activity}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="label-text">Activity 2 (Optional)</div>
+                                    <div className="activity-picker">
+                                        <button
+                                            className={`activity-btn ${modalData.activity2 === '' ? 'selected' : ''}`}
+                                            onClick={() => setModalData({...modalData, activity2: ''})}
+                                        >
+                                            None
+                                        </button>
+                                        {ACTIVITIES.map(activity => (
+                                            <button
+                                                key={activity}
+                                                className={`activity-btn ${modalData.activity2 === activity ? 'selected' : ''}`}
+                                                onClick={() => setModalData({...modalData, activity2: activity})}
+                                            >
+                                                {activity}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="label-text">Category (Required)</div>
+                                    <div className="category-picker">
+                                        {CATEGORIES.map(category => (
+                                            <button
+                                                key={category}
+                                                className={`category-btn ${modalData.category === category ? 'selected' : ''}`}
+                                                onClick={() => setModalData({...modalData, category})}
+                                            >
+                                                {category}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="label-text">Exertion Level (Required)</div>
+                                    <div className="color-picker">
+                                        {COLORS.map(color => (
+                                            <button
+                                                key={color}
+                                                className={`color-btn ${color} ${modalData.color === color ? 'selected' : ''}`}
+                                                onClick={() => setModalData({...modalData, color})}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div style={{textAlign: 'center', marginBottom: '20px', fontSize: '13px', color: 'var(--text-secondary)'}}>
+                                        🔴 High exertion | 🟡 Moderate | 🟢 Rest/recovery
+                                    </div>
+
+                                    <div className="btn-grid">
+                                        <button className="btn btn-outline" onClick={() => setShowModal(false)}>
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            className="btn" 
+                                            onClick={saveSlotData}
+                                            disabled={!modalData.activity1 || !modalData.category || !modalData.color}
+                                        >
+                                            Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="bottom-nav">
+                        <button 
+                            className={`nav-btn ${currentView === 'tracker' ? 'active' : ''}`}
+                            onClick={() => setCurrentView('tracker')}
+                        >
+                            <span className="nav-icon">📊</span>
+                            Tracker
+                        </button>
+                        <button 
+                            className={`nav-btn ${currentView === 'export' ? 'active' : ''}`}
+                            onClick={() => setCurrentView('export')}
+                        >
+                            <span className="nav-icon">📤</span>
+                            Export
+                        </button>
+                        <button 
+                            className={`nav-btn ${currentView === 'settings' ? 'active' : ''}`}
+                            onClick={() => setCurrentView('settings')}
+                        >
+                            <span className="nav-icon">⚙️</span>
+                            Settings
+                        </button>
+                    </div>
+                </>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('app'));
+    </script>
+</body>
+</html>
